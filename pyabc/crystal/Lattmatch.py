@@ -11,10 +11,8 @@ from itertools import combinations
 
 
 
-def match(pcell_A, pcell_B, n_max, distance):
-    err_l = 0.01
-    err_s = 0.01
-    err_theta = 0.01
+def match(pcell_A, pcell_B, n_max, distance, err_l, err_s, err_theta):
+
     s_A =  abs(det(np.array(pcell_A._lattice[0:2, 0:2])))
     s_B =  abs(det(np.array(pcell_B._lattice[0:2, 0:2])))
     nms = []
@@ -25,40 +23,39 @@ def match(pcell_A, pcell_B, n_max, distance):
                 nms.append([n, m])
 
     NM = np.array(nms)
+    print(NM)
+    A_b = []
+    B_a = []
     for nm in NM:
 
         slatt_A = non_dup_hnfs(pcell_A, nm[0], dimension=2)
         slatt_B = non_dup_hnfs(pcell_B, nm[1], dimension=2)
-    slatt_A_d = []
-    slatt_B_d = []
-    for l_A in slatt_A:
+        slatt_A_d = []
+        slatt_B_d = []
+        for l_A in slatt_A:
 
-        lat = delaunay_reduce_2D(pcell_A._lattice, l_A)
-        slatt_A_d.append(lat)
+            lat = delaunay_reduce_2D(pcell_A._lattice, l_A)
+            slatt_A_d.append(lat)
 
 
-    for l_B in slatt_B:
-        lat = delaunay_reduce_2D(pcell_B._lattice, l_B)
-        slatt_B_d.append(lat)
+        for l_B in slatt_B:
+            lat = delaunay_reduce_2D(pcell_B._lattice, l_B)
+            slatt_B_d.append(lat)
 
-    A_b = []
-    B_a = []
-    for l_A_d in slatt_A_d:
-        dis1_A = math.sqrt(l_A_d[0,0]**2+l_A_d[0,1]**2)
-        dis2_A = math.sqrt(l_A_d[1,0]**2+l_A_d[1,1]**2)
-        theta_A = (l_A_d[0,0]*l_A_d[1,0]+l_A_d[0,1]*l_A_d[1,1])/dis1_A/dis2_A
-        for l_B_d in slatt_B_d:
-            dis1_B = math.sqrt(l_B_d[0,0]**2+l_B_d[0,1]**2)
-            dis2_B = math.sqrt(l_B_d[1,0]**2+l_B_d[1,1]**2)
-            theta_B = (l_B_d[0,0]*l_B_d[1,0]+l_B_d[0,1]*l_B_d[1,1])/dis1_B/dis2_B
-            if (abs(dis1_A - dis1_B) < err_l*dis1_A and
-                abs(dis2_A - dis2_B) < err_l*dis1_A and
-                abs(theta_A - theta_B) < err_theta):
-                A_b.append(np.round(l_A_d*np.matrix(pcell_A._lattice).I).astype(int))
-                B_a.append(np.round(l_B_d*np.matrix(pcell_B._lattice).I).astype(int))
-    print(A_b)
-    print(B_a)
 
+        for l_A_d in slatt_A_d:
+            dis1_A = math.sqrt(l_A_d[0,0]**2+l_A_d[0,1]**2)
+            dis2_A = math.sqrt(l_A_d[1,0]**2+l_A_d[1,1]**2)
+            theta_A = (l_A_d[0,0]*l_A_d[1,0]+l_A_d[0,1]*l_A_d[1,1])/dis1_A/dis2_A
+            for l_B_d in slatt_B_d:
+                dis1_B = math.sqrt(l_B_d[0,0]**2+l_B_d[0,1]**2)
+                dis2_B = math.sqrt(l_B_d[1,0]**2+l_B_d[1,1]**2)
+                theta_B = (l_B_d[0,0]*l_B_d[1,0]+l_B_d[0,1]*l_B_d[1,1])/dis1_B/dis2_B
+                if (abs(dis1_A - dis1_B) < err_l*dis1_A and
+                    abs(dis2_A - dis2_B) < err_l*dis2_A and
+                    abs(theta_A - theta_B) < err_theta):
+                    A_b.append(np.round(l_A_d*np.matrix(pcell_A._lattice).I).astype(int))
+                    B_a.append(np.round(l_B_d*np.matrix(pcell_B._lattice).I).astype(int))
 
 
     for i in range(0, len(A_b)):
@@ -72,7 +69,6 @@ def match(pcell_A, pcell_B, n_max, distance):
         atoms_layer = list(scell_A._atoms) + list(scell_B._atoms)
         # import pdb; pdb.set_trace()
         cell_layer =  Cell(latt_layer, positions_layer, atoms_layer)
-        print(cell_layer)
         write(cell_layer, filename='POSCAR'+str(i), suffix='.vasp', long_format=True)
 
 ########扩胞和怎么错位
@@ -112,17 +108,17 @@ def delaunay_reduce_2D(platt, hnfm):
         raise ValueError("This cell can't transform to a full cell.")
 
 
-bcc_latt = [1, 1, 0,
-            -1, 1, 0,
-            0, 0, 1]
-bcc_pos = [(0, 0, 0)]
-bcc_atoms = [1]
+bcc_latt = [3.19, 0, 0,
+            1.595, 2.7626, 0,
+            0, 0, 10]
+bcc_pos = [(0, 0, 0.01)]
+bcc_atoms = [12]
 pcell_A = Cell(bcc_latt, bcc_pos, bcc_atoms)
-fcc_latt = [0, 5, 0,
-            5, 0, 0,
-            0, 0, 1]
-fcc_pos = [(0, 0, 0)]
-fcc_atoms = [0]
+fcc_latt = [2.929, 0, 0,
+            1.4645, 2.537, 0,
+            0, 0, 10]
+fcc_pos = [(0, 0, 0.01 )]
+fcc_atoms = [22]
 pcell_B = Cell(fcc_latt, fcc_pos, fcc_atoms)
-match(pcell_A, pcell_B, 100, distance=0.1)
+match(pcell_A, pcell_B, 10, distance=1, err_l = 0.1, err_s = 0.1, err_theta = 0.05)
 ##distance:吸附层和衬底间距离(挨)
